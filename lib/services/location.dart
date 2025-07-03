@@ -19,7 +19,7 @@ class Location {
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.low,
+        desiredAccuracy: LocationAccuracy.lowest,
       );
 
       latitude = position.latitude;

@@ -17,10 +17,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    getLocationData();
+    getLocation();
   }
 
-  void getLocationData() async {
+  void getLocation() async {
     try {
       Location location = Location();
       await location.getCurrentLocation();
@@ -33,6 +33,14 @@ class _LoadingScreenState extends State<LoadingScreen> {
       latitude = location.latitude;
       longitude = location.longitude;
 
+      await getWeatherData(latitude!, longitude!);
+    } catch (e) {
+      print('Error getting location: $e');
+    }
+  }
+
+  Future<void> getWeatherData(double latitude, double longitude) async {
+    try {
       var url = Uri.parse(
         'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric',
       );
@@ -48,10 +56,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
         int condition = decodedData['weather'][0]['id'];
         print('Temp: $temperature °C, City: $cityName, Condition: $condition');
       } else {
-        print('Failed to fetch weather data: ${response.statusCode}');
+        print('Failed to fetch weather data: [33m${response.statusCode}[0m');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error fetching weather data: $e');
     }
   }
 

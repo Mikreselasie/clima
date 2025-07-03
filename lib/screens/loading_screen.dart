@@ -15,6 +15,7 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   double? latitude;
   double? longitude;
+  bool locationError = false;
 
   @override
   void initState() {
@@ -23,20 +24,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
 
   void getLocationData() async {
+    print('Starting getLocationData');
     Location location = Location();
-    // try {
-    //   await location.getCurrentLocation().timeout(Duration(seconds: 10));
-    // } catch (e) {
-    //   print(
-    //     'Error fetching location: Timeout or failure: '
-    //     '\u001b[31m$e\u001b[0m',
-    //   );
-    //   // Optionally, show an error dialog or message here
-    //   return;
-    // }
 
-    latitude = 7.56;
-    longitude = 37.8;
+    print('Calling getCurrentLocation...');
+    await location.getCurrentLocation();
+    print('Returned from getCurrentLocation');
+    print(
+      'Location values: latitude=${location.latitude}, longitude=${location.longitude}',
+    );
+
+    if (location.latitude == null || location.longitude == null) {
+      print('Failed to get location. Check permissions and device settings.');
+      setState(() {
+        locationError = true;
+      });
+      return;
+    }
+
+    latitude = location.latitude;
+    longitude = location.longitude;
+    print('Set latitude and longitude: $latitude, $longitude');
 
     Networking networking = Networking(
       'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric',
@@ -44,19 +52,23 @@ class _LoadingScreenState extends State<LoadingScreen> {
     print("Fetching Weather data");
     var weatherData;
     try {
+      print('Calling networking.getData()...');
       weatherData = await networking.getData().timeout(Duration(seconds: 10));
+      print('Weather data received: $weatherData');
     } catch (e) {
       print(
         'Error fetching weather data: Timeout or failure: '
         '\u001b[31m$e\u001b[0m',
       );
-      // Optionally, show an error dialog or message here
+      setState(() {
+        locationError = true;
+      });
       return;
     }
 
-    // Defer navigation until after the first frame
     print("About to push the LocationScreen");
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('Navigating to LocationScreen...');
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -66,8 +78,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
         ),
       );
     });
-
-    // You can still process weatherData here if needed
   }
 
   @override
